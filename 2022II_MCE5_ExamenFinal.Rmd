@@ -177,7 +177,6 @@ plot(forecast_ets_quakes)
 ```
 
 ```{r}
-#setwd("C:/Users/JavierMendoza/Repaso/mce5_exam2")
 # Cargar paquetes necesarios
 library(readxl)
 library(forecast)
@@ -195,7 +194,7 @@ ts_hepatitis_univar <- ts(as.vector(hepatitis_matrix), start = c(2010, 1), frequ
 # Eliminar los datos vacíos (enero a febrero de 2010, noviembre a diciembre de 2017)
 ts_hepatitis_clean <- window(ts_hepatitis_univar, start = c(2010, 3), end = c(2017, 10))
 
-# Análisis exploratorio para la serie "wildfire"
+# Análisis exploratorio para la serie "Hepatitis"
 # Autocorrelación
 acf(ts_hepatitis_clean, main = "Autocorrelation of hepatitis")
 
@@ -268,8 +267,6 @@ forecast_modelo_seleccionado <- forecast(modelo_seleccionado, h = 24)
 
 # Visualización de los resultados (gráfico de la predicción del mejor modelo)
 plot(forecast_modelo_seleccionado, main = paste("AIC:", metodo, "for Hepatitis"))
-
-
 
 ```
 
