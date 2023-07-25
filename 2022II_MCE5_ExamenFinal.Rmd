@@ -1,7 +1,7 @@
 ---
 title: "Métodos Cuantitativos en Ecología - MCE5"
 subtitle: "EXAMEN FINAL - 2022II"
-author: 'Apellido Nombre'
+author: 'Chacón Alisson'
 date: "`r Sys.Date()`"
 output:
   html_document:
@@ -59,6 +59,11 @@ En el archivo `"glm.xlsx"` tiene tres datos:
 Realice los siguientes análisis: 
 
 - aedes: GLM Poisson
+library(stats)
+library(graphics)
+library(MASS)
+aedes <- glm <- glm(aedes ~ repetition, family = poisson (link = "log"), data = glm)
+summary(glm)
 
 - disease: GLMs binomiales
 
@@ -76,9 +81,26 @@ Realizar los siguientes análisis y respectivas interpretaciones:
 
 5. Validez del modelo.
 
+```{r}
+# Cargar paquetes necesarios
+library(stats)
+library(graphics)
+library(MASS)
+library(readxl)
 
+# Cargar el archivo de datos - Hoja "aedes"
+data_aedes <- read_xlsx("glm.xlsx", sheet = "aedes")
 
+# Análisis exploratorio para aedes
+summary(data_aedes$aedes)  # Resumen estadístico de la variable aedes
 
+# Planteamiento de hipótesis para aedes
+cat("Hipótesis para aedes: Cada vez que se repite la aplicación del insecticida, la cantidad de zancudos vivos disminuye.\n\n")
+
+# Análisis de regresión para aedes
+glm_aedes <- glm(aedes ~ repetition, family = poisson(link = "log"), data = data_aedes)
+summary(glm_aedes)  # Resumen del modelo de regresión para aedes
+```
 
 ## **PREGUNTA 2: Series de tiempo [3 PUNTOS]**
 
@@ -103,6 +125,157 @@ Realizar los siguientes análisis y respectivas interpretaciones:
 4. Predicción a 20 años o a 24 meses según corresponda. 
 
 
+```{r}
+# Cargar paquetes necesarios
+library(readxl)
+library(forecast)
+library(ggplot2)
+
+# Cargar el archivo de datos - Hoja "quakes"
+data_quakes <- read_excel("ts.xlsx", sheet = "quakes")
+
+# Obtener los datos de la columna "quakes"
+quakes <- data_quakes$quakes
+
+# Convertir los datos en una serie de tiempo
+ts_quakes <- ts(data_quakes, start = c(2000, 1), frequency = 1)
+
+# Análisis exploratorio para la serie "quakes"
+# Autocorrelación
+acf(ts_quakes, main = "Autocorrelation of quakes")
+
+# Intentar realizar la descomposición
+tryCatch(
+  {
+    decomposed_quakes <- decompose(ts_quakes)
+    # Si se realiza la descomposición con éxito, mostrar los resultados
+    plot(decomposed_quakes)
+  },
+  error = function(e) {
+    # Si ocurre un error, mostrar un mensaje de alerta explicando la razón
+    cat("No es posible realizar la descomposición de la serie de tiempo 'quakes' debido a la falta de períodos suficientes.\n")
+  }
+)
+
+# Modelos de pronóstico (ARIMA, SARIMA, ETS)
+# Modelos de pronóstico (ARIMA, SARIMA, ETS)
+model_arima_quakes <- auto.arima(ts_quakes[, 1])
+model_sarima_quakes <- auto.arima(ts_quakes[, 1], seasonal = TRUE)
+model_ets_quakes <- ets(ts_quakes[, 1])
+
+# Validez de los modelos
+
+# Predicción a 20 años
+forecast_arima_quakes <- forecast(model_arima_quakes, h = 20)
+forecast_sarima_quakes <- forecast(model_sarima_quakes, h = 20)
+forecast_ets_quakes <- forecast(model_ets_quakes, h = 20)
+
+# Visualización de los resultados
+plot(forecast_arima_quakes)
+plot(forecast_sarima_quakes)
+plot(forecast_ets_quakes)
+```
+
+```{r}
+#setwd("C:/Users/JavierMendoza/Repaso/mce5_exam2")
+# Cargar paquetes necesarios
+library(readxl)
+library(forecast)
+library(ggplot2)
+
+# Cargar el archivo de datos - Hoja "hepatitis"
+data_hepatitis <- read_excel("ts.xlsx", sheet = "hepatitis")
+
+# Acomodar la tabla si es necesario (asumiendo que los datos están en columnas)
+hepatitis_matrix <- as.matrix(data_hepatitis[, -1])
+
+# Convertir la matriz en una serie de tiempo univariada
+ts_hepatitis_univar <- ts(as.vector(hepatitis_matrix), start = c(2010, 1), frequency = 12)
+
+# Eliminar los datos vacíos (enero a febrero de 2010, noviembre a diciembre de 2017)
+ts_hepatitis_clean <- window(ts_hepatitis_univar, start = c(2010, 3), end = c(2017, 10))
+
+# Análisis exploratorio para la serie "wildfire"
+# Autocorrelación
+acf(ts_hepatitis_clean, main = "Autocorrelation of hepatitis")
+
+# Descomposición
+decomposed_hepatitis <- decompose(ts_hepatitis_clean)
+plot(decomposed_hepatitis)
+
+# Análisis estacional
+seasonal_decomposition <- decompose(ts_hepatitis_clean)
+seasonal_component <- seasonal_decomposition$seasonal
+plot(seasonal_component, main = "Seasonal Component of Hepatitis", xlab = "Time", ylab = "Seasonal Component")
+
+# Ajustar modelos ARIMA, SARIMA, ETS y NNAR
+model_arima_hepatitis <- auto.arima(ts_hepatitis_clean)
+model_sarima_hepatitis <- auto.arima(ts_hepatitis_clean, seasonal = TRUE)
+model_ets_hepatitis <- ets(ts_hepatitis_clean)
+model_nnar_hepatitis <- nnetar(ts_hepatitis_clean)
+
+# Predicción a 24 meses
+forecast_arima_hepatitis <- forecast(model_arima_hepatitis, h = 24)
+forecast_sarima_hepatitis <- forecast(model_sarima_hepatitis, h = 24)
+forecast_ets_hepatitis <- forecast(model_ets_hepatitis, h = 24)
+forecast_nnar_hepatitis <- forecast(model_nnar_hepatitis, h = 24)
+
+# Visualización de los resultados (gráficos individuales)
+plot(forecast_arima_hepatitis, main = "ARIMA Forecast for Hepatitis")
+plot(forecast_sarima_hepatitis, main = "SARIMA Forecast for Hepatitis")
+plot(forecast_ets_hepatitis, main = "ETS Forecast for Hepatitis")
+plot(forecast_nnar_hepatitis, main = "NNAR Forecast for Hepatitis")
+```
+
+```{r}
+# Cargar paquetes necesarios
+library(readxl)
+library(forecast)
+library(ggplot2)
+
+# Cargar el archivo de datos - Hoja "wildfire"
+data_wildfire <- read_excel("ts.xlsx", sheet = "wildfire")
+
+# Convertir los datos en una serie de tiempo
+ts_wildfire <- ts(data_wildfire$`Fire frequency`, start = c(2003, 1), frequency = 12)
+
+# Análisis exploratorio para la serie "wildfire"
+# Autocorrelación
+acf(ts_wildfire, main = "Autocorrelation of wildfire")
+
+# Descomposición
+decomposed_wildfire <- decompose(ts_wildfire)
+plot(decomposed_wildfire)
+
+# Análisis estacional
+seasonal_decomposition <- decompose(ts_wildfire)
+seasonal_component <- seasonal_decomposition$seasonal
+plot(seasonal_component, main = "Seasonal Component of Wildfire", xlab = "Time", ylab = "Seasonal Component")
+
+# Ajustar modelos ARIMA, SARIMA, ETS y NNAR
+model_arima_wildfire <- auto.arima(ts_wildfire)
+model_sarima_wildfire <- auto.arima(ts_wildfire, seasonal = TRUE)
+model_ets_wildfire <- ets(ts_wildfire)
+model_nnar_wildfire <- nnetar(ts_wildfire)
+
+# Validez de los modelos
+accuracy(model_arima_wildfire)
+accuracy(model_sarima_wildfire)
+accuracy(model_ets_wildfire)
+accuracy(model_nnar_wildfire)
+
+# Predicción a 20 años (240 meses) para ARIMA, SARIMA, ETS y NNAR
+forecast_arima_wildfire <- forecast(model_arima_wildfire, h = 240)
+forecast_sarima_wildfire <- forecast(model_sarima_wildfire, h = 240)
+forecast_ets_wildfire <- forecast(model_ets_wildfire, h = 240)
+forecast_nnar_wildfire <- forecast(model_nnar_wildfire, h = 240)
+
+# Visualización de los resultados
+plot(forecast_arima_wildfire, main = "ARIMA Forecast for Wildfire")
+plot(forecast_sarima_wildfire, main = "SARIMA Forecast for Wildfire")
+plot(forecast_ets_wildfire, main = "ETS Forecast for Wildfire")
+plot(forecast_nnar_wildfire, main = "NNAR Forecast for Wildfire")
+```
 
 ## **PREGUNTA 3: Análisis espacial de especies [3 PUNTOS]**
 
@@ -128,3 +301,153 @@ Seleccione una especie de planta y una especie de animal; asimismo, dos tipos de
 
 Luego realice un análisis espacial de distribución de la especie en Ecuador continental en base a los datos de presencia del GBIF (use rgbif para descargar la data). Explique el resultado y compare la diferencia entre la salida de los dos modelos. En qué regiones los modelos difieren más en la predicción?   
 
+```{r}
+# Cargar paquetes necesarios
+library(rgbif)
+library(sp)
+library(randomForest)
+library(mgcv)
+library(leaflet)
+library(leaflet.extras)
+
+# Especificar la especie seleccionada
+especie <- "Panthera onca"  
+
+# Obtener los datos de presencia del GBIF para Ecuador continental
+datos_presencia <- occ_search(taxonKey = name_backbone(especie)$speciesKey, country = "EC", hasCoordinate = TRUE, limit = 10000)
+
+# Filtrar y limpiar los datos
+datos_presencia <- datos_presencia$data
+datos_presencia <- na.omit(datos_presencia[, c("decimalLongitude", "decimalLatitude")])
+coordenadas <- data.frame(x = datos_presencia$decimalLongitude, y = datos_presencia$decimalLatitude)
+
+# Dividir los datos en conjuntos de entrenamiento y prueba
+set.seed(123)
+indices_entrenamiento <- sample(nrow(coordenadas), floor(0.7 * nrow(coordenadas)))
+datos_entrenamiento <- coordenadas[indices_entrenamiento, ]
+datos_prueba <- coordenadas[-indices_entrenamiento, ]
+
+# Modelado: Bosques Aleatorios (rf)
+modelo_rf <- randomForest(x ~ y, data = datos_entrenamiento, ntree = 100)
+
+# Modelado: Generalized Additive Model (gam)
+modelo_gam <- gam(y ~ s(x), data = datos_entrenamiento)
+
+# Evaluar el desempeño de los modelos
+prediccion_rf <- predict(modelo_rf, newdata = datos_prueba)
+oreprediccion_gam <- predict(modelo_gam, newdata = datos_prueba)
+
+# Comparar las predicciones de los modelos
+diferencias <- abs(prediccion_rf - oreprediccion_gam)
+
+# Agregar las coordenadas predichas al conjunto de datos de prueba
+datos_prueba$pred_rf <- prediccion_rf
+datos_prueba$pred_gam <- oreprediccion_gam
+
+# Crear un nuevo conjunto de datos con coordenadas para predecir la distribución futura
+set.seed(456)  # Establecer semilla para reproducibilidad
+nueva_coordenadas <- data.frame(x = runif(1000, min(datos_presencia$decimalLongitude), max(datos_presencia$decimalLongitude)),
+                                y = runif(1000, min(datos_presencia$decimalLatitude), max(datos_presencia$decimalLatitude)))
+
+# Predecir la distribución futura utilizando el modelo GAM
+prediccion_futura <- predict(modelo_gam, newdata = nueva_coordenadas)
+
+# Crear mapa con la distribución actual de la especie
+mapa_presencia_actual <- leaflet(data = datos_prueba) %>%
+  addTiles() %>%
+  addMarkers(lng = ~x, lat = ~y, 
+             popup = ~paste("Especie:", especie, "<br>",
+                            "Predicción Bosques Aleatorios (rf):", round(pred_rf, 2), "<br>",
+                            "Predicción Generalized Additive Model (gam):", round(pred_gam, 2), "<br>",
+                            "Diferencia de predicción:", round(diferencias, 2)),
+             label = ~especie) %>%
+  hideGroup("Distribución actual")
+
+# Crear mapa con la distribución futura de la especie
+mapa_presencia_futura <- leaflet(data = nueva_coordenadas) %>%
+  addTiles() %>%
+  addCircleMarkers(lng = ~x, lat = ~y, radius = 5, color = "green", fillOpacity = 0.8, 
+                   popup = ~paste("Predicción futura:", round(prediccion_futura, 2))) %>%
+  addLegend("bottomright", title = "Distribución futura", colors = "green", labels = "Predicción")
+
+# Visualizar ambos mapass
+mapa_presencia_actual
+mapa_presencia_futura
+
+```
+
+
+```{r}
+# Cargar paquetes necesarios
+library(rgbif)
+library(sp)
+library(randomForest)
+library(mgcv)
+library(leaflet)
+library(leaflet.extras)
+
+# Especificar la especie seleccionada
+especie <- "Ceiba pentandra"  
+
+# Obtener los datos de presencia del GBIF para Ecuador continental
+datos_presencia <- occ_search(taxonKey = name_backbone(especie)$speciesKey, country = "EC", hasCoordinate = TRUE, limit = 10000)
+
+# Filtrar y limpiar los datos
+datos_presencia <- datos_presencia$data
+datos_presencia <- na.omit(datos_presencia[, c("decimalLongitude", "decimalLatitude")])
+coordenadas <- data.frame(x = datos_presencia$decimalLongitude, y = datos_presencia$decimalLatitude)
+
+# Dividir los datos en conjuntos de entrenamiento y prueba
+set.seed(123)
+indices_entrenamiento <- sample(nrow(coordenadas), floor(0.7 * nrow(coordenadas)))
+datos_entrenamiento <- coordenadas[indices_entrenamiento, ]
+datos_prueba <- coordenadas[-indices_entrenamiento, ]
+
+# Modelado: Bosques Aleatorios (rf)
+modelo_rf <- randomForest(x ~ y, data = datos_entrenamiento, ntree = 100)
+
+# Modelado: Generalized Additive Model (gam)
+modelo_gam <- gam(y ~ s(x), data = datos_entrenamiento)
+
+# Evaluar el desempeño de los modelos
+prediccion_rf <- predict(modelo_rf, newdata = datos_prueba)
+oreprediccion_gam <- predict(modelo_gam, newdata = datos_prueba)
+
+# Comparar las predicciones de los modelos
+diferencias <- abs(prediccion_rf - oreprediccion_gam)
+
+# Agregar las coordenadas predichas al conjunto de datos de prueba
+datos_prueba$pred_rf <- prediccion_rf
+datos_prueba$pred_gam <- oreprediccion_gam
+
+# Crear un nuevo conjunto de datos con coordenadas para predecir la distribución futura
+set.seed(456)  # Establecer semilla para reproducibilidad
+nueva_coordenadas <- data.frame(x = runif(1000, min(datos_presencia$decimalLongitude), max(datos_presencia$decimalLongitude)),
+                                y = runif(1000, min(datos_presencia$decimalLatitude), max(datos_presencia$decimalLatitude)))
+
+# Predecir la distribución futura utilizando el modelo GAM
+prediccion_futura <- predict(modelo_gam, newdata = nueva_coordenadas)
+
+# Crear mapa con la distribución actual de la especie
+mapa_presencia_actual <- leaflet(data = datos_prueba) %>%
+  addTiles() %>%
+  addMarkers(lng = ~x, lat = ~y, 
+             popup = ~paste("Especie:", especie, "<br>",
+                            "Predicción Bosques Aleatorios (rf):", round(pred_rf, 2), "<br>",
+                            "Predicción Generalized Additive Model (gam):", round(pred_gam, 2), "<br>",
+                            "Diferencia de predicción:", round(diferencias, 2)),
+             label = ~especie) %>%
+  hideGroup("Distribución actual")
+
+# Crear mapa con la distribución futura de la especie
+mapa_presencia_futura <- leaflet(data = nueva_coordenadas) %>%
+  addTiles() %>%
+  addCircleMarkers(lng = ~x, lat = ~y, radius = 5, color = "green", fillOpacity = 0.8, 
+                   popup = ~paste("Predicción futura:", round(prediccion_futura, 2))) %>%
+  addLegend("bottomright", title = "Distribución futura", colors = "green", labels = "Predicción")
+
+# Visualizar ambos mapas
+mapa_presencia_actual
+mapa_presencia_futura
+
+```
