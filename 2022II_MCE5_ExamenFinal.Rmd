@@ -225,6 +225,52 @@ plot(forecast_arima_hepatitis, main = "ARIMA Forecast for Hepatitis")
 plot(forecast_sarima_hepatitis, main = "SARIMA Forecast for Hepatitis")
 plot(forecast_ets_hepatitis, main = "ETS Forecast for Hepatitis")
 plot(forecast_nnar_hepatitis, main = "NNAR Forecast for Hepatitis")
+
+# Obtener los valores de AIC para ARIMA, SARIMA y ETS
+AIC_arima <- AIC(model_arima_hepatitis)
+AIC_sarima <- AIC(model_sarima_hepatitis)
+AIC_ets <- AIC(model_ets_hepatitis)
+
+# Obtener el valor de AIC para NNAR (calculado manualmente)
+n <- length(ts_hepatitis_clean)
+k_nnar <- length(coef(model_nnar_hepatitis))
+mse_nnar <- mean(residuals(model_nnar_hepatitis)^2)
+AIC_nnar <- n * log(mse_nnar) + 2 * k_nnar
+
+# Imprimir los valores de AIC para cada modelo
+print(paste("AIC ARIMA:", AIC_arima))
+print(paste("AIC SARIMA:", AIC_sarima))
+print(paste("AIC ETS:", AIC_ets))
+print(paste("AIC NNAR:", AIC_nnar))
+
+# Determinar el mejor modelo
+mejor_modelo <- which.min(c(AIC_arima, AIC_sarima, AIC_ets, AIC_nnar))
+
+# Imprimir el nombre del mejor modelo seleccionado
+if (mejor_modelo == 1) {
+  modelo_seleccionado <- model_arima_hepatitis
+  metodo <- "ARIMA"
+} else if (mejor_modelo == 2) {
+  modelo_seleccionado <- model_sarima_hepatitis
+  metodo <- "SARIMA"
+} else if (mejor_modelo == 3) {
+  modelo_seleccionado <- model_ets_hepatitis
+  metodo <- "ETS"
+} else {
+  modelo_seleccionado <- model_nnar_hepatitis
+  metodo <- "NNAR"
+}
+
+print(paste("Mejor modelo seleccionado:", metodo))
+
+# Predicción a 24 meses con el mejor modelo seleccionado
+forecast_modelo_seleccionado <- forecast(modelo_seleccionado, h = 24)
+
+# Visualización de los resultados (gráfico de la predicción del mejor modelo)
+plot(forecast_modelo_seleccionado, main = paste("AIC:", metodo, "for Hepatitis"))
+
+
+
 ```
 
 ```{r}
